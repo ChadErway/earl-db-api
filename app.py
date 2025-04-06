@@ -2,7 +2,10 @@ from flask import Flask, request, jsonify
 import mysql.connector
 import os
 
+print("📦 Imports loaded")
+
 app = Flask(__name__)
+print("🚀 Flask app created")
 
 db_config = {
     'host': os.environ.get('DB_HOST'),
@@ -10,6 +13,7 @@ db_config = {
     'password': os.environ.get('DB_PASS'),
     'database': os.environ.get('DB_NAME')
 }
+print("🔧 DB config loaded")
 
 @app.route("/")
 def home():
@@ -45,4 +49,5 @@ def lookup_part():
     return jsonify({"reply": reply})
 
 if __name__ == "__main__":
+    print("🧠 Launching EARL…")
     app.run(debug=True)
