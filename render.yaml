@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: earl-db-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: DB_HOST
+        value: YOUR_DB_HOST
+      - key: DB_USER
+        value: YOUR_DB_USER
+      - key: DB_PASS
+        value: YOUR_DB_PASSWORD
+      - key: DB_NAME
+        value: YOUR_DB_NAME
