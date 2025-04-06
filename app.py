@@ -4,7 +4,6 @@ import os
 
 app = Flask(__name__)
 
-# Magento MySQL credentials (set as ENV variables for safety)
 db_config = {
     'host': os.environ.get('DB_HOST'),
     'user': os.environ.get('DB_USER'),
@@ -25,7 +24,6 @@ def lookup_part():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
 
-    # Try matching SKU or custom attributes (simplified starter query)
     cursor.execute("""
         SELECT sku, value AS name
         FROM catalog_product_entity
