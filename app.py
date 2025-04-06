@@ -43,3 +43,6 @@ def lookup_part():
     sku = result['sku']
     reply = f"That matches RF Engine part #{sku}. Here’s the link: https://rfecomm.com/catalogsearch/result/?q={sku}"
     return jsonify({"reply": reply})
+
+if __name__ == "__main__":
+    app.run(debug=True)
