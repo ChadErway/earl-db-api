@@ -15,9 +15,11 @@ db_config = {
 }
 print("🔧 DB config loaded")
 
+
 @app.route("/")
 def home():
     return "EARL DB API is running."
+
 
 @app.route("/lookup/part", methods=["GET"])
 def lookup_part():
@@ -25,67 +27,85 @@ def lookup_part():
     if not query:
         return jsonify({"error": "Missing 'query' parameter"}), 400
 
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
+    try:
+        print("🔍 Lookup via /lookup/part:", query)
 
-    cursor.execute("""
-        SELECT sku, value AS name
-        FROM catalog_product_entity
-        JOIN catalog_product_entity_varchar 
-          ON catalog_product_entity.entity_id = catalog_product_entity_varchar.entity_id
-        WHERE sku LIKE %s OR value LIKE %s
-        LIMIT 1
-    """, (f"%{query}%", f"%{query}%"))
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor(dictionary=True)
 
-    result = cursor.fetchone()
-    cursor.close()
-    conn.close()
+        cursor.execute("""
+            SELECT sku, value AS name
+            FROM catalog_product_entity
+            JOIN catalog_product_entity_varchar 
+              ON catalog_product_entity.entity_id = catalog_product_entity_varchar.entity_id
+            WHERE sku LIKE %s OR value LIKE %s
+            LIMIT 1
+        """, (f"%{query}%", f"%{query}%"))
 
-    if not result:
-        return jsonify({"reply": f"Sorry, I couldn’t find anything matching '{query}'."})
+        result = cursor.fetchone()
+        print("📦 Lookup result:", result)
 
-    sku = result['sku']
-    reply = f"That matches RF Engine part #{sku}. Here’s the link: https://rfecomm.com/catalogsearch/result/?q={sku}"
-    return jsonify({"reply": reply})
+        cursor.close()
+        conn.close()
+
+        if not result:
+            return jsonify({"reply": f"Sorry, I couldn’t find anything matching '{query}'."})
+
+        sku = result['sku']
+        reply = f"That matches RF Engine part #{sku}. Here’s the link: https://rfecomm.com/catalogsearch/result/?q={sku}"
+        return jsonify({"reply": reply})
+
+    except Exception as e:
+        print("❌ Error in /lookup/part:", str(e))
+        return jsonify({"error": "Database lookup failed"}), 500
+
+
 @app.route("/webhook", methods=["POST"])
 def tawk_webhook():
+    print("📣 /webhook route triggered")
+
     data = request.json
-    print("📩 Incoming webhook data:", data)  # <--- Add this line
+    print("📩 Incoming webhook payload:", data)
 
     message = data.get("message", "").strip()
-    ...
+    print("📨 Extracted message:", message)
 
     if not message:
         return jsonify({"reply": "No message received."})
 
-    # (rest of your code...)
+    try:
+        print("🔍 Running DB query for:", message)
 
-    # Run a lookup using the same logic as /lookup/part
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor(dictionary=True)
 
-    cursor.execute("""
-        SELECT sku, value AS name
-        FROM catalog_product_entity
-        JOIN catalog_product_entity_varchar 
-          ON catalog_product_entity.entity_id = catalog_product_entity_varchar.entity_id
-        WHERE sku LIKE %s OR value LIKE %s
-        LIMIT 1
-    """, (f"%{message}%", f"%{message}%"))
+        cursor.execute("""
+            SELECT sku, value AS name
+            FROM catalog_product_entity
+            JOIN catalog_product_entity_varchar 
+              ON catalog_product_entity.entity_id = catalog_product_entity_varchar.entity_id
+            WHERE sku LIKE %s OR value LIKE %s
+            LIMIT 1
+        """, (f"%{message}%", f"%{message}%"))
 
-    result = cursor.fetchone()
-    cursor.close()
-    conn.close()
+        result = cursor.fetchone()
+        print("📦 Webhook query result:", result)
 
-    if not result:
-        return jsonify({"reply": f"Hmm… I’ll admit, that one’s got me stumped. Let’s get a human involved."})
+        cursor.close()
+        conn.close()
 
-    sku = result['sku']
-    reply = f"That matches RF Engine part #{sku}. Here’s the link: https://rfecomm.com/catalogsearch/result/?q={sku}"
-    return jsonify({"reply": reply})
+        if not result:
+            return jsonify({"reply": "Hmm… I’ll admit, that one’s got me stumped. Let’s get a human involved."})
+
+        sku = result['sku']
+        reply = f"That matches RF Engine part #{sku}. Here’s the link: https://rfecomm.com/catalogsearch/result/?q={sku}"
+        return jsonify({"reply": reply})
+
+    except Exception as e:
+        print("❌ Error in /webhook:", str(e))
+        return jsonify({"reply": "Sorry, something went wrong while checking that part. Let’s get a human involved."})
 
 
 if __name__ == "__main__":
     print("🧠 Launching EARL…")
     app.run(debug=True, host="0.0.0.0", port=10000)
-
