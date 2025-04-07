@@ -50,9 +50,10 @@ def lookup_part():
 @app.route("/webhook", methods=["POST"])
 def tawk_webhook():
     data = request.json
-    print("📨 Incoming webhook data:", data)  # <-- Add this
+    print("📩 Incoming webhook data:", data)  # <--- Add this line
 
     message = data.get("message", "").strip()
+    ...
 
     if not message:
         return jsonify({"reply": "No message received."})
