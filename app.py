@@ -50,12 +50,14 @@ def lookup_part():
 @app.route("/webhook", methods=["POST"])
 def tawk_webhook():
     data = request.json
-message = data.get("message") or data.get("data", {}).get("message", "")
-message = message.strip()
+    print("📨 Incoming webhook data:", data)  # <-- Add this
 
+    message = data.get("message", "").strip()
 
     if not message:
         return jsonify({"reply": "No message received."})
+
+    # (rest of your code...)
 
     # Run a lookup using the same logic as /lookup/part
     conn = mysql.connector.connect(**db_config)
